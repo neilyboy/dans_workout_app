@@ -71,44 +71,49 @@ const closeModal = document.querySelector('.close-modal');
 
 // Modal functions
 function showModal(title, content, onConfirm) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
     
-    modal.innerHTML = `
-        <div class="modal-container">
-            <div class="modal-header">
-                <h2>${title}</h2>
-                <button type="button" class="btn-close" onclick="this.closest('.modal').remove()">×</button>
-            </div>
-            <div class="modal-body">
-                ${content}
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                <button type="button" class="btn btn-primary" id="modal-confirm">Confirm</button>
-            </div>
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    
+    modalContent.innerHTML = `
+        <div class="modal-header">
+            <h3>${title}</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            ${content}
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary modal-cancel">Cancel</button>
+            <button class="btn-primary modal-confirm">Confirm</button>
         </div>
     `;
     
-    document.body.appendChild(modal);
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay);
     
-    // Click outside to close
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
+    // Event listeners
+    const closeBtn = modalContent.querySelector('.modal-close');
+    const cancelBtn = modalContent.querySelector('.modal-cancel');
+    const confirmBtn = modalContent.querySelector('.modal-confirm');
     
-    // Confirm button handler
-    const confirmBtn = modal.querySelector('#modal-confirm');
+    const closeModal = () => {
+        modalOverlay.remove();
+    };
+    
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
     confirmBtn.addEventListener('click', async () => {
         if (onConfirm) {
             await onConfirm();
         }
-        modal.remove();
     });
     
-    return modal;
+    return {
+        close: closeModal
+    };
 }
 
 function hideModal() {
@@ -283,6 +288,7 @@ function displayUsers() {
             <div class="user-info">
                 <div class="avatar" data-initial="${user.avatar}">${user.avatar}</div>
                 <span class="user-name">${user.username}</span>
+                ${user.isAdmin ? '<span class="admin-badge">Admin</span>' : ''}
             </div>
             <div class="user-actions">
                 <button onclick="editUser(${user.id})" class="btn-secondary">
@@ -819,6 +825,133 @@ async function loadUsers() {
         console.error('Error loading users:', error);
     }
 }
+
+// User management functions
+async function editUser(userId) {
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch user details');
+        }
+
+        const user = await response.json();
+        
+        const formHTML = `
+            <form id="edit-user-form" class="modal-form">
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" name="username" value="${user.username}" required>
+                    <div class="help-text">3-20 characters, start with letter, only letters, numbers, and underscores</div>
+                </div>
+                <div class="form-group">
+                    <label for="editPassword">New Password (leave blank to keep current)</label>
+                    <input type="password" id="editPassword" name="password">
+                    <div class="help-text">Min 8 chars, 1 uppercase, 1 lowercase, 1 number</div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="editIsAdmin" name="isAdmin" ${user.isAdmin ? 'checked' : ''}>
+                        Administrator
+                    </label>
+                </div>
+            </form>
+        `;
+
+        const modal = showModal('Edit User', formHTML, async () => {
+            const formData = {
+                username: document.getElementById('editUsername').value.trim(),
+                password: document.getElementById('editPassword').value,
+                isAdmin: document.getElementById('editIsAdmin').checked
+            };
+
+            // Validate username
+            if (!validateUsername(formData.username)) {
+                alert('Username must be 3-20 characters long, start with a letter, and contain only letters, numbers, and underscores');
+                return;
+            }
+
+            // Validate password if provided
+            if (formData.password && !validatePassword(formData.password)) {
+                alert('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+                return;
+            }
+
+            // Remove password if empty
+            if (!formData.password) {
+                delete formData.password;
+            }
+
+            try {
+                const updateResponse = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(formData)
+                });
+
+                if (!updateResponse.ok) {
+                    const error = await updateResponse.json();
+                    throw new Error(error.error || 'Failed to update user');
+                }
+
+                loadUsers(); // Refresh the user list
+                modal.close();
+                alert('User updated successfully!');
+            } catch (error) {
+                console.error('Error updating user:', error);
+                alert(error.message);
+            }
+        });
+    } catch (error) {
+        console.error('Error loading user details:', error);
+        alert('Failed to load user details: ' + error.message);
+    }
+}
+
+async function deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to delete user');
+        }
+
+        loadUsers(); // Refresh the user list
+        alert('User deleted successfully!');
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        alert(error.message);
+    }
+}
+
+// Event listeners for admin functionality
+document.addEventListener('DOMContentLoaded', () => {
+    // Add user button
+    document.getElementById('add-user-btn')?.addEventListener('click', () => {
+        if (currentUser?.isAdmin) {
+            addUser();
+        }
+    });
+    
+    // Other existing event listeners...
+});
 
 // Login form submission
 document.getElementById('login-form').addEventListener('submit', async (e) => {
