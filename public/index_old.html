@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workout Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/avatars.css">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="avatar-colors">
+    <div id="app">
+        <!-- Login/Register View -->
+        <div id="auth-view" class="view">
+            <div class="auth-container">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="login">Login</button>
+                    <button class="tab-btn" data-tab="register">Register</button>
+                </div>
+                
+                <form id="login-form" class="auth-form">
+                    <input type="text" placeholder="Username" name="username" required>
+                    <input type="password" placeholder="Password" name="password" required>
+                    <button type="submit" class="btn-primary">Login</button>
+                </form>
+
+                <form id="register-form" class="auth-form hidden">
+                    <input type="text" placeholder="Username" name="username" required>
+                    <input type="password" placeholder="Password" name="password" required>
+                    <button type="submit" class="btn-primary">Register</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main App View -->
+        <div id="main-view" class="view hidden">
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <div class="user-info">
+                    <div id="user-avatar" class="avatar avatar-small"></div>
+                    <span id="username-display"></span>
+                </div>
+                <button id="logout-btn" class="btn-secondary">Logout</button>
+            </nav>
+
+            <!-- Bottom Navigation -->
+            <nav class="bottom-nav">
+                <button class="nav-btn active" data-view="routines">
+                    <i class="material-icons">fitness_center</i>
+                    <span>Routines</span>
+                </button>
+                <button class="nav-btn" data-view="workout">
+                    <i class="material-icons">play_circle</i>
+                    <span>Workout</span>
+                </button>
+                <button class="nav-btn" data-view="history">
+                    <i class="material-icons">history</i>
+                    <span>History</span>
+                </button>
+            </nav>
+
+            <!-- Content Views -->
+            <div class="content">
+                <!-- Routines View -->
+                <div id="routines-view" class="content-view">
+                    <div class="header">
+                        <h2>My Routines</h2>
+                        <button id="add-routine-btn" class="btn-primary">
+                            <i class="material-icons">add</i> New Routine
+                        </button>
+                    </div>
+                    <div id="routines-list" class="list">
+                        <!-- Routines will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Active Workout View -->
+                <div id="workout-view" class="content-view hidden">
+                    <div class="workout-header">
+                        <h2>Current Workout</h2>
+                        <div class="timer" id="master-timer">00:00:00</div>
+                    </div>
+                    <div id="current-exercise" class="exercise-card">
+                        <!-- Current exercise info will be populated by JavaScript -->
+                    </div>
+                    <div class="workout-controls">
+                        <button id="pause-workout" class="btn-primary">
+                            <i class="material-icons">pause</i> Pause
+                        </button>
+                        <button id="next-exercise" class="btn-secondary">
+                            <i class="material-icons">skip_next</i> Next
+                        </button>
+                        <button id="complete-workout" class="btn-success">
+                            <i class="material-icons">check</i> Complete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- History View -->
+                <div id="history-view" class="content-view hidden">
+                    <div class="header">
+                        <h2>Workout History</h2>
+                    </div>
+                    <div id="calendar-view" class="calendar">
+                        <!-- Calendar will be populated by JavaScript -->
+                    </div>
+                    <div id="history-list" class="list">
+                        <!-- Workout history will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard View -->
+                <div id="admin-dashboard-view" class="content-view hidden">
+                    <div class="admin-header">
+                        <h2>Admin Dashboard</h2>
+                        <button onclick="addNewUser()" class="btn-primary">Add New User</button>
+                    </div>
+                    <div id="user-list" class="user-list">
+                        <!-- User list will be populated here -->
+                    </div>
+                    <div id="add-user-modal" class="modal hidden">
+                        <!-- Add user form will be injected here -->
+                    </div>
+                    <div id="edit-user-modal" class="modal hidden">
+                        <!-- Edit user form will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Templates -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Routine Creation/Edit Template -->
+    <template id="routine-form-template">
+        <div class="routine-form">
+            <h2>Create New Routine</h2>
+            <form id="routine-form">
+                <div class="form-group">
+                    <label for="routine-name">Routine Name</label>
+                    <input type="text" id="routine-name" required>
+                </div>
+                
+                <div class="exercises-list" id="exercises-list">
+                    <!-- Exercises will be added here -->
+                </div>
+
+                <button type="button" class="btn-secondary" id="add-exercise-btn">
+                    <i class="material-icons">add</i> Add Exercise
+                </button>
+
+                <button type="submit" class="btn-primary">
+                    <i class="material-icons">save</i> Save Routine
+                </button>
+            </form>
+        </div>
+    </template>
+
+    <!-- Exercise Form Template -->
+    <template id="exercise-form-template">
+        <div class="exercise-form">
+            <div class="exercise-header">
+                <h3>Exercise #<span class="exercise-number"></span></h3>
+                <button type="button" class="btn-danger remove-exercise">
+                    <i class="material-icons">delete</i>
+                </button>
+            </div>
+            
+            <div class="form-group">
+                <label for="exercise-name">Exercise Name</label>
+                <input type="text" class="exercise-name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Exercise Type</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="exercise-type" value="time" checked>
+                        Time-based
+                    </label>
+                    <label>
+                        <input type="radio" name="exercise-type" value="reps">
+                        Repetition-based
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="exercise-target">Target (seconds/reps)</label>
+                <input type="number" class="exercise-target" min="1" required>
+            </div>
+        </div>
+    </template>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

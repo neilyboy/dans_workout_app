@@ -1,0 +1,46 @@
+.avatar-option {
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border-radius: 50%;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.avatar-option:hover {
+    transform: scale(1.05);
+}
+
+.avatar-option i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.avatar-colors {
+    --color-1: #4CAF50;
+    --color-2: #2196F3;
+    --color-3: #9C27B0;
+    --color-4: #FF9800;
+    --color-5: #E91E63;
+    --color-6: #00BCD4;
+    --color-7: #FF5722;
+    --color-8: #8BC34A;
+}
+
+.avatar-1 { background-color: var(--color-1); }
+.avatar-2 { background-color: var(--color-2); }
+.avatar-3 { background-color: var(--color-3); }
+.avatar-4 { background-color: var(--color-4); }
+.avatar-5 { background-color: var(--color-5); }
+.avatar-6 { background-color: var(--color-6); }
+.avatar-7 { background-color: var(--color-7); }
+.avatar-8 { background-color: var(--color-8); }

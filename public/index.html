@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workout Tracker</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/avatars.css">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="avatar-colors">
+    <div id="app">
+        <!-- Login/Register View -->
+        <div id="auth-view" class="view">
+            <div class="auth-container">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="login">Login</button>
+                    <button class="tab-btn" data-tab="register">Register</button>
+                </div>
+                
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <input type="text" id="username" placeholder="Username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" placeholder="Password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Login</button>
+                </form>
+
+                <form id="register-form" class="auth-form hidden">
+                    <div class="form-group">
+                        <input type="text" id="register-username" placeholder="Username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="register-password" placeholder="Password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="confirm-password" placeholder="Confirm Password" name="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Register</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main App View -->
+        <div id="main-view" class="view hidden">
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <div class="top-bar">
+                    <div class="user-info">
+                        <div id="user-avatar" class="avatar avatar-small"></div>
+                        <span id="username-display"></span>
+                    </div>
+                    <div class="top-bar-actions">
+                        <button id="admin-dashboard-btn" class="btn-link hidden">
+                            <i class="material-icons">dashboard</i>
+                            Dashboard
+                        </button>
+                        <button id="logout-btn" class="btn-link">
+                            <i class="material-icons">logout</i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Bottom Navigation -->
+            <nav class="bottom-nav">
+                <button class="nav-btn active" data-view="routines">
+                    <i class="material-icons">fitness_center</i>
+                    <span>Routines</span>
+                </button>
+                <button class="nav-btn" data-view="workout">
+                    <i class="material-icons">play_circle</i>
+                    <span>Workout</span>
+                </button>
+                <button class="nav-btn" data-view="history">
+                    <i class="material-icons">history</i>
+                    <span>History</span>
+                </button>
+            </nav>
+
+            <!-- Content Views -->
+            <div class="content">
+                <!-- Admin Dashboard -->
+                <div id="admin-dashboard" class="content-view hidden">
+                    <h2>Admin Dashboard</h2>
+                    <div class="admin-section">
+                        <h3>User Management</h3>
+                        <button id="add-user-btn" class="btn-primary">
+                            <i class="material-icons">person_add</i>
+                            Add User
+                        </button>
+                        <div id="user-list" class="user-list"></div>
+                    </div>
+                </div>
+
+                <!-- Routines View -->
+                <div id="routines-view" class="content-view">
+                    <div class="header">
+                        <h2>My Routines</h2>
+                        <button id="add-routine-btn" class="btn-primary">
+                            <i class="material-icons">add</i> New Routine
+                        </button>
+                    </div>
+                    <div id="routines-list" class="list">
+                        <!-- Routines will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Active Workout View -->
+                <div id="workout-view" class="content-view hidden">
+                    <div class="workout-header">
+                        <h2>Current Workout</h2>
+                        <div class="timer" id="master-timer">00:00:00</div>
+                    </div>
+                    <div id="current-exercise" class="exercise-card">
+                        <!-- Current exercise info will be populated by JavaScript -->
+                    </div>
+                    <div class="workout-controls">
+                        <button id="pause-workout" class="btn-primary">
+                            <i class="material-icons">pause</i> Pause
+                        </button>
+                        <button id="next-exercise" class="btn-secondary">
+                            <i class="material-icons">skip_next</i> Next
+                        </button>
+                        <button id="complete-workout" class="btn-success">
+                            <i class="material-icons">check</i> Complete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- History View -->
+                <div id="history-view" class="content-view hidden">
+                    <div class="header">
+                        <h2>Workout History</h2>
+                    </div>
+                    <div id="history-list" class="list">
+                        <!-- History will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Templates -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title"></h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="btn-secondary">Cancel</button>
+                <button id="modal-confirm" class="btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exercise Form Template -->
+    <template id="exercise-form-template">
+        <div class="exercise-form">
+            <input type="text" name="name" placeholder="Exercise Name" required>
+            <input type="number" name="sets" placeholder="Number of Sets" required min="1">
+            <input type="number" name="reps" placeholder="Reps per Set" required min="1">
+            <input type="number" name="weight" placeholder="Weight (optional)">
+            <textarea name="notes" placeholder="Notes (optional)"></textarea>
+        </div>
+    </template>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
